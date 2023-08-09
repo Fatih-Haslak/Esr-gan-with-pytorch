@@ -41,4 +41,5 @@ class VGGPerceptualLoss(torch.nn.Module):
                 gram_x = act_x @ act_x.permute(0, 2, 1)
                 gram_y = act_y @ act_y.permute(0, 2, 1)
                 loss += torch.nn.functional.l1_loss(gram_x, gram_y)
+                
         return loss

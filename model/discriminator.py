@@ -22,7 +22,7 @@ class RelativisticDiscriminator(nn.Module):
     
     def forward(self, real_input, fake_input):
         real_features = self.shared_layers(real_input)
-        fake_features = self.shared_layers(fake_input)
+        fake_features = self.shared_layers(fake_input) # GENERATOR OUTPUT
         
         real_scores = self.final_layer(real_features)
         fake_scores = self.final_layer(fake_features)
