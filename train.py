@@ -44,23 +44,7 @@ class GAN(L.LightningModule):
 
     def training_step(self, batch,batch_idx):
         #high-r image, #low-r image
-        print(batch_idx)
         imgs_high, imgs_low = batch
-
-        image_tensor = imgs_high[0].cpu().numpy()
-        image_data = image_tensor.transpose((1, 2, 0))
-        import matplotlib.pyplot as plt
-        # Görüntüyü çiz
-        plt.imshow(image_data)
-        plt.title("Kaliteli Görüntüsü")
-        plt.axis("off")  # Eksenleri gizle
-        plt.show()
-        image_tensor = imgs_low[0].cpu().numpy()
-        image_data = image_tensor.transpose((1, 2, 0))
-        plt.imshow(image_data)
-        plt.title("Bozuk Görüntüsü")
-        plt.axis("off")  # Eksenleri gizle
-        plt.show()
 
         optimizer_g, optimizer_d = self.optimizers()
         
@@ -104,10 +88,6 @@ class GAN(L.LightningModule):
         loss = realitivistic__loss + perceptual__loss
         self.log('val_loss', loss,on_epoch=True,prog_bar=True)
 
-
-
-
-
     def configure_optimizers(self):
         lr = self.hparams.lr
         b1 = self.hparams.b1
@@ -129,7 +109,7 @@ if __name__ == "__main__":
     trainer = L.Trainer(
     accelerator="auto",
     devices=1,
-    max_epochs=3,
+    max_epochs=100,
     #strategy="ddp_find_unused_parameters_true",
     #num_nodes=1
     )

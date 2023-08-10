@@ -32,7 +32,6 @@ class DIV2KDataset(Dataset):
         if self.transform:
             image = self.transform(image)
             label = self.transform(label_image)
-          
         return (image,label)
 
 class DIV2KDataLoader(L.LightningDataModule):
@@ -46,6 +45,7 @@ class DIV2KDataLoader(L.LightningDataModule):
         ])
 
         self.data = DIV2KDataset(high_res_data_dir,low_res_data_dir, transform=self.data_transform)
+        
         #train test split for validation
         train_set_size = int(len(self.data) * 0.8) #train set size
         valid_set_size = len(self.data) - train_set_size #valid set size
