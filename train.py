@@ -18,7 +18,7 @@ class GAN(L.LightningModule):
         in_nc : int = 3,
         out_nc : int = 3,
         nf : int = 64,
-        nb : int = 1,
+        nb : int = 2, # increase by gpu perfonmance
         gc : int = 32,
         lr: float = 0.0001,
         b1: float = 0.9,
@@ -98,14 +98,6 @@ class GAN(L.LightningModule):
         opt_g = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(b1, b2))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
         return [opt_g, opt_d], []
-
-    # def on_validation_epoch_end(self):
-    #     z = self.validation_z.type_as(self.generator.ResidualDenseBlock_5C[0].weight)
-
-    #     # log sampled images
-    #     sample_imgs = self(z)
-    #     grid = torchvision.utils.make_grid(sample_imgs)
-    #     self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
 
 
 if __name__ == "__main__":
