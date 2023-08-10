@@ -23,8 +23,6 @@ class GAN(L.LightningModule):
         lr: float = 0.0001,
         b1: float = 0.9,
         b2: float = 0.999,
-        batch_size: int = 2,
-        **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -36,34 +34,54 @@ class GAN(L.LightningModule):
 
 
     def forward(self, z):
-        return self.generator(z) #torch.image
+        return self.generator(z) #torch.image generator forward
 
-    def __perceptual_loss(self, y_hat, y): #tahmin and real
+    def __perceptual_loss(self, y_hat, y): #predict and real 
         return self.perceptual_loss.forward(y_hat, y)
+
     def __relativistic_loss(self,y_hat,y):
         return self.relativistic_loss.forward(y_hat, y)
 
-    def training_step(self, batch):
+    def training_step(self, batch,batch_idx):
+        #high-r image, #low-r image
+        print(batch_idx)
         imgs_high, imgs_low = batch
+
+        image_tensor = imgs_high[0].cpu().numpy()
+        image_data = image_tensor.transpose((1, 2, 0))
+        import matplotlib.pyplot as plt
+        # Görüntüyü çiz
+        plt.imshow(image_data)
+        plt.title("Kaliteli Görüntüsü")
+        plt.axis("off")  # Eksenleri gizle
+        plt.show()
+        image_tensor = imgs_low[0].cpu().numpy()
+        image_data = image_tensor.transpose((1, 2, 0))
+        plt.imshow(image_data)
+        plt.title("Bozuk Görüntüsü")
+        plt.axis("off")  # Eksenleri gizle
+        plt.show()
+
         optimizer_g, optimizer_d = self.optimizers()
+        
         #train generator
         self.toggle_optimizer(optimizer_g)
         self.generated_imgs = self(imgs_low) #generator-e low olan resmi ver
-        
-        sample_imgs = self.generated_imgs[:6]
-        grid = torchvision.utils.make_grid(sample_imgs)
-        self.logger.experiment.add_image("generated_images", grid, 0)
 
+        #calculate loss
         perceptual__loss= self.perceptual_loss(self.generated_imgs,imgs_high) #perceptual loss
         real_scores, fake_scores= self.discriminator(imgs_high,self.generated_imgs) # discrimantorden sonuc al
         realitivistic__loss= self.__relativistic_loss(real_scores,fake_scores) # realitivistic loss
-        g_loss=perceptual__loss+realitivistic__loss # toplam loss # bir tane daha gelcek
+        g_loss=perceptual__loss+realitivistic__loss # toplam loss # bir tane daha gelcek ?
+        
         self.log("g_loss", g_loss, prog_bar=True) #loggla
+        
+        #backward generator
         self.manual_backward(g_loss,retain_graph=True)# backward
         optimizer_g.step()
         optimizer_g.zero_grad()
         self.untoggle_optimizer(optimizer_g)
-        #generator bitti
+        #generator end
 
         #discrimatoru eğit
         self.toggle_optimizer(optimizer_d)
@@ -101,10 +119,10 @@ class GAN(L.LightningModule):
 
 
 if __name__ == "__main__":
-    data_dir_high = '/home/fatih/esrgan/dataset/train/DIV2K_train_HR' 
-    data_dir_low = '/home/fatih/esrgan/dataset/train_lr/DIV2K_train_LR_bicubic_X2/DIV2K_train_LR_bicubic/X2'
-    test_data_dir = '/home/fatih/esrgan/dataset/test/DIV2K_valid_HR'
-    batch_size=1
+    data_dir_high = '/home/fatih/esrgan/dataset/train_hr/DIV2K_train_HR' #high res image
+    data_dir_low = '/home/fatih/esrgan/dataset/train_lr/DIV2K_train_LR_bicubic_X2/DIV2K_train_LR_bicubic/X2' #low res image
+    test_data_dir = '/home/fatih/esrgan/dataset/test/DIV2K_valid_HR' #test data don't any train steps on this data
+    batch_size= 2
     div2k = DIV2KDataLoader(data_dir_high,data_dir_low,test_data_dir,batch_size)
     model=GAN()
     #accelerator="gpu", devices=8, strategy="ddp", num_nodes=4
