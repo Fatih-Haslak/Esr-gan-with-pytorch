@@ -76,6 +76,16 @@ class GAN(L.LightningModule):
         self.untoggle_optimizer(optimizer_d)
         #disc bitti train bu skeılde
 
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        #x=self.validation_z.type_as(x)
+        z = self.generator(y)
+        real_scores, fake_scores = self.discriminator(x,z)
+        realitivistic__loss= self.__relativistic_loss(real_scores,fake_scores)
+        perceptual__loss= self.perceptual_loss(z,x)
+        loss = realitivistic__loss + perceptual__loss
+        self.log('val_loss', loss,on_epoch=True,prog_bar=True)
+
 
 
 
@@ -89,16 +99,13 @@ class GAN(L.LightningModule):
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
         return [opt_g, opt_d], []
 
-    def on_validation_epoch_end(self):
-        z = self.validation_z.type_as(self.generator.ResidualDenseBlock_5C[0].weight)
+    # def on_validation_epoch_end(self):
+    #     z = self.validation_z.type_as(self.generator.ResidualDenseBlock_5C[0].weight)
 
-        # log sampled images
-        sample_imgs = self(z)
-        grid = torchvision.utils.make_grid(sample_imgs)
-        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
-
-
-
+    #     # log sampled images
+    #     sample_imgs = self(z)
+    #     grid = torchvision.utils.make_grid(sample_imgs)
+    #     self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
 
 
 if __name__ == "__main__":
@@ -108,10 +115,14 @@ if __name__ == "__main__":
     batch_size=1
     div2k = DIV2KDataLoader(data_dir_high,data_dir_low,test_data_dir,batch_size)
     model=GAN()
+    #accelerator="gpu", devices=8, strategy="ddp", num_nodes=4
     trainer = L.Trainer(
     accelerator="auto",
     devices=1,
     max_epochs=3,
+    #strategy="ddp_find_unused_parameters_true",
+    #num_nodes=1
     )
     trainer.fit(model, div2k.train_dataloader(), div2k.val_dataloader())
     trainer.save_checkpoint("best_model.ckpt")
+ 

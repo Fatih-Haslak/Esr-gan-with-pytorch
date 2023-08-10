@@ -21,7 +21,7 @@ class RelativisticDiscriminator(nn.Module):
         self.final_layer = nn.Conv2d(hidden_channels*8, 1, kernel_size=4, stride=1, padding=0)
     
     def forward(self, real_input, fake_input):
-        real_features = self.shared_layers(real_input)
+        real_features = self.shared_layers(real_input) # Real input
         fake_features = self.shared_layers(fake_input) # GENERATOR OUTPUT
         
         real_scores = self.final_layer(real_features)
