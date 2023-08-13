@@ -8,6 +8,7 @@ import torchvision
 from data.dataloader import DIV2KDataLoader
 from model.generator import RRDBNet
 from model.discriminator import RelativisticDiscriminator
+from model.discriminator_arch import UNetDiscriminatorSN
 from utils.perceptual_loss import VGGPerceptualLoss
 from utils.relativistic_loss import RelativisticDiscriminatorLoss
 
@@ -18,7 +19,7 @@ class GAN(L.LightningModule):
         in_nc : int = 3,
         out_nc : int = 3,
         nf : int = 64,
-        nb : int = 2, # increase by gpu perfonmance
+        nb : int = 1, # increase by gpu perfonmance
         gc : int = 32,
         lr: float = 0.0001,
         b1: float = 0.9,
@@ -28,7 +29,7 @@ class GAN(L.LightningModule):
         self.save_hyperparameters()
         self.automatic_optimization = False
         self.generator = RRDBNet(in_nc,out_nc,nf,nb,gc)
-        self.discriminator = RelativisticDiscriminator(in_nc,nf)
+        self.discriminator = UNetDiscriminatorSN(in_nc,nf)
         self.perceptual_loss = VGGPerceptualLoss()
         self.relativistic_loss =  RelativisticDiscriminatorLoss()
 
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     data_dir_high = '/home/fatih/esrgan/dataset/train_hr/DIV2K_train_HR' #high res image
     data_dir_low = '/home/fatih/esrgan/dataset/train_lr/DIV2K_train_LR_bicubic_X2/DIV2K_train_LR_bicubic/X2' #low res image
     test_data_dir = '/home/fatih/esrgan/dataset/test/DIV2K_valid_HR' #test data don't any train steps on this data
-    batch_size= 2
+    batch_size= 1
     div2k = DIV2KDataLoader(data_dir_high,data_dir_low,test_data_dir,batch_size)
     model=GAN()
     #accelerator="gpu", devices=8, strategy="ddp", num_nodes=4

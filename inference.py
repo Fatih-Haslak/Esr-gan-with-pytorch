@@ -44,7 +44,7 @@ if __name__ == "__main__":
     #gpu 
     device = torch.device('cuda')
     #load model
-    model = RRDBNet(3, 3, 64, 2, gc=32)
+    model = RRDBNet(3, 3, 64, 23, gc=32)
     generator_params = model.state_dict()
     checkpoint = torch.load(checkpoint)
     for param_name in generator_params:
